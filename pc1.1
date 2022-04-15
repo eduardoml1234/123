@@ -1,0 +1,35 @@
+class Local{
+    string nombre;char tipo;direccion ubicacion;
+    public:
+    Local(string nombre=" ",char tipo=' ',direccion ubicacion=nullptr):nombre(nombre),tipo(tipo),ubicacion(ubicacion){}
+    string getNombre(){return nombre;}
+    direccion getUbicacion(return ubicacion);
+    char getTipo(){return tipo;}
+};
+class direccion{
+    string distrito,calle,numero;
+    public:
+    Distrito(string nombre=" "):distrito(distrito),calle(calle),numero(numero){}
+    string getDistrito(){return distrito;}
+    string getCalle(){return calle;}
+    string getNumero(){return numero;}
+    
+};
+class Usuario{
+    string nombre;direccion domicilio;Local conrrecurrido;
+    public:
+    Usuario(
+        string nombre=" ",double ID=0,Distrito domicilio=nullptr,Local conrrecurrido=nullptr
+        ):nombre(nombre),ID(ID),domicilio(domicilio),conrrecurrido(conrrecurrido)
+    {}
+    string getNombre(){return nombre;}
+    double getID(){return ID;}
+    Distrito getDomicilio(){return domicilio;}
+    Local getConrrecurrido(std::function<bool(Local)> condicion){
+        if (condicion(arr_locales[i])){return conrrecurrido;}
+        else{return nullptr;}
+    }
+};
+
+
+};
