@@ -1,35 +1,317 @@
-class Local{
-    string nombre;char tipo;direccion ubicacion;
-    public:
-    Local(string nombre=" ",char tipo=' ',direccion ubicacion=nullptr):nombre(nombre),tipo(tipo),ubicacion(ubicacion){}
-    string getNombre(){return nombre;}
-    direccion getUbicacion(return ubicacion);
-    char getTipo(){return tipo;}
+%%writefile programa1.cpp
+#include <iostream>
+#include <functional>
+//#include <conio.h>
+#include <vector>
+#include <string.h>
+#include <string>
+#include <stdlib.h>
+#include <fstream>
+
+using namespace std;
+using std::function;
+using std::cout;
+using std::endl;
+
+template<class General>
+
+class Nodo {
+public:
+	General element;
+	Nodo<General>* sig;
+
+	Nodo(General e) {
+		element = e;
+		sig = nullptr;
+
+	}
 };
-class direccion{
-    string distrito,calle,numero;
-    public:
-    Distrito(string nombre=" "):distrito(distrito),calle(calle),numero(numero){}
-    string getDistrito(){return distrito;}
-    string getCalle(){return calle;}
-    string getNumero(){return numero;}
+template<class General>
+
+class Lista {
+	Nodo<General>* inicio;
+	Nodo<General>* fin;
+	size_t cantidad;
+public:
+	Lista() {
+		inicio = nullptr;
+		cantidad = 0;
+	}
+
+	void push_back(General elem) {//L
+		Nodo<General>* nuevo = new Nodo<General>(elem);
+		if (cantidad == 0) {
+			inicio = nuevo;
+			fin = nuevo;
+		}
+		else {
+			fin->sig = nuevo;
+			fin = nuevo;
+		}cantidad++;
+	}
+	void print(function<void(General)>imprime) {
+		Nodo<General>* aux = inicio;
+		while (aux->sig != nullptr) {
+			imprime(aux->element);
+			aux = aux->sig;
+		}
+		imprime(aux->element);
+		cout << endl;
+	}
+	void condition_print(function<void(General)>imprime, function<bool(General)>condicion) {
+		Nodo<General>* aux = inicio;
+		while (aux->sig != nullptr) {
+			if (condicion(aux->element)) { imprime(aux->element); }
+			aux = aux->sig;
+		}
+		if (condicion(aux->element)) { imprime(aux->element); }
+		cout << endl;
+	}
+	Nodo<General>* GoNext(int n,int i, Nodo<General>* aux) {
+		if (i == n || n >= cantidad) { return aux; }
+		aux = aux->sig;
+		i++;
+		GoNext(n, i, aux);
+	};
+	General buscar(size_t n) {
+		Nodo<General>* aux = inicio;
+		size_t i = 0;
+		
+		for (size_t i = 0; i < n; i++) {
+			aux = aux->sig;
+		}
+		
+		//aux=GoNext(n, 0, aux);
+		return aux->element;
+	}
+	General condition_buscar(function<bool(General)>condicion) {
+		Nodo<General>* aux = inicio;
+		while (aux->sig != nullptr && !condicion(aux->element)) {
+			aux = aux->sig;
+		}
+		if (condicion(aux->element)) { return aux->element; cout<<"Correcto";}
+	//	else { return nullptr; }
+	}
+  
+	size_t getCantidad() { return cantidad; }
+	void borrar(int n) {
+		Nodo<General>* lista = inicio;
+		if (lista != nullptr) {
+			Nodo<General>* aux;
+			Nodo<General>* anterior = nullptr;
+			aux = lista;
+			//recorrer lista
+			for (int i = 0; i < n; ++i) {
+				anterior = aux;
+				aux = aux->sig;
+			}
+			//si es el primer elemento
+			if (anterior == nullptr) {
+				lista = lista->sig;
+				delete aux;
+			}
+			//si no es el primer elemento
+			else {
+				anterior->sig = aux->sig;
+				delete aux;
+			}
+		}
+		inicio = lista;
+	}
+};
+
+typedef unsigned short us;
+
+class lugar {
+	string direccion;
+public:
+	lugar(string direccion = " "):direccion(direccion) {  }
+	string getDireccion() { return direccion; }
+};
+
+class persona :public lugar {
+	string nombre;
+	string apellido;
+public:
+	persona(string nombre = " ", string apellido = " ", string direccion = " ") : nombre(nombre),
+		apellido(apellido), lugar(direccion) {}
+	string getNombre() { return nombre; }
+	string getApellido() { return apellido; }
+
+};
+class repartidor :public persona {
+	us movil;
+  string vehiculo;
+public:
+	repartidor( string nombre = " ", string apellido = " ", string direccion = " ", us movil = ' ', string vehiculo=" ") :persona(nombre,apellido,direccion), movil(movil),vehiculo(vehiculo) { }
+	
+	us getMovil() { return movil; }
+  
+	string toString() { return getNombre() + " " + getApellido() + "-" + getDireccion() + "-" + std::to_string(movil) + " - "+vehiculo ; }
+};
+
+class usuarios :public persona {
+	us movil;
+public:
+	usuarios( string nombre = " ", string apellido = " ", string direccion = " ", us movil = ' ') :persona(nombre,apellido,direccion), movil(movil) { }
+	
+	us getMovil() { return movil; }
+	string toString() { return getNombre() + " " + getApellido() + "-" + getDireccion() + "-" + std::to_string(movil); }
+};
+
+
+class local :public lugar {
+	string nombre; us order;
+public:
+	local(string direccion = " ", string nombre = " ", us order = 0) :lugar(direccion), nombre(nombre), order(order) {}
+	string getNombre() { return nombre; }
+	string toString() { return "(" + std::to_string(order) + ")" + nombre + "-" + getDireccion(); }
+};
+
+class pedido {
+	usuarios pedidor; local lugar_pedido; us tiempo; repartidor RepartidorDesignado;
+public:
+	pedido(usuarios pedidor = usuarios(), local lugar_pedido = local(), us tiempo=0, repartidor RepartidorDesignado=repartidor()) :pedidor(pedidor), lugar_pedido(lugar_pedido), tiempo(tiempo),RepartidorDesignado(RepartidorDesignado) {}
+	usuarios getPedidor() { return pedidor; }
+	local getLugar() { return lugar_pedido; }
+	us getTiempo() { return tiempo; }
+	string toString() { return pedidor.toString() + "-" + lugar_pedido.getNombre() + "-" + std::to_string(tiempo) + " minutos"; }
+  string DatosRepartidor(){return RepartidorDesignado.toString()  ;}
+};
+
+class Archivo {
+	ofstream BlocNotas;
+	Lista<pedido> lista_Pedido;
+public:
+	Archivo() {}
+	void getPedidos(Lista<pedido> p) { lista_Pedido = p; }
+	void EscribirPedidos() {
+		Lista<pedido> aux = lista_Pedido;
+		BlocNotas.open("Lista_pedidos.txt", ios::out);
+		for (size_t i = 0; i < lista_Pedido.getCantidad(); i++) {
+			BlocNotas << lista_Pedido.buscar(i).toString() << endl;
+		}
+		BlocNotas.close();
+	}
+};
+
+int main() {
+	Lista<usuarios> lista_Usuarios;
+	Lista<local> lista_Local;
+	Lista<pedido> lista_Pedido;
+  Lista<repartidor> lista_Repartidor;
+	char opcion;
+	us opcion_local;
+	string nombre, apellido;
+	string direccion;
+	string localopt;
+	unsigned int movil;
+	us tiempo=0;
+	Archivo* arc = new Archivo();
+
+	//Listamos los locales
+	lista_Local.push_back(local("Abancay", "Inka Farma", 0));
+	lista_Local.push_back(local("Abancay", "McDonalds", 1));
+	lista_Local.push_back(local("Abancay", "Tambo", 2));
+	lista_Local.push_back(local("Matellini", "MiFarma", 3));
+	lista_Local.push_back(local("Matellini", "Popeyes", 4));
+	lista_Local.push_back(local("Matellini", "Tambo", 5));
+	lista_Local.push_back(local("Barranco", "MiFarma", 6));
+	lista_Local.push_back(local("Barranco", "McDonalds", 7));
+	lista_Local.push_back(local("Barranco", "Tambo", 8));
+  
+  //Listamos los Repartidor
+  unsigned int movil2=1234;
+  lista_Repartidor.push_back(repartidor("Jorge","Muñoz","Abancay",movil2,"Bici"));
+  lista_Repartidor.push_back(repartidor("Manuel","Gomez","Matellini",movil2,"Moto"));
+  lista_Repartidor.push_back(repartidor("Raul","Castro","Barranco",movil2,"Moto"));
+  
+
+	//Accion de los usuarios
+	do {
+		//aumento de tiempo
+		tiempo += 30;
+		//datos del usuario
+		cout << "Digite su nombre: ";
+		cin >> nombre;
+		cout << "Digite su apellido: ";
+		cin >> apellido;
+		cout << "Para poder contactarnos, necesitamos tu numero (5 digitos): ";
+		cin >> movil;
+		cout << "Ingrese una dirección (Abancay, Matellini o Barranco) :";
+		cin >> direccion;
+		lista_Usuarios.push_back(usuarios(nombre, apellido, direccion, movil));
     
-};
-class Usuario{
-    string nombre;direccion domicilio;Local conrrecurrido;
-    public:
-    Usuario(
-        string nombre=" ",double ID=0,Distrito domicilio=nullptr,Local conrrecurrido=nullptr
-        ):nombre(nombre),ID(ID),domicilio(domicilio),conrrecurrido(conrrecurrido)
-    {}
-    string getNombre(){return nombre;}
-    double getID(){return ID;}
-    Distrito getDomicilio(){return domicilio;}
-    Local getConrrecurrido(std::function<bool(Local)> condicion){
-        if (condicion(arr_locales[i])){return conrrecurrido;}
-        else{return nullptr;}
-    }
-};
+		//ahora metemos los datos del pedido
+		cout << "Estos son los locales en su zona, Escriba el nombre del local donde realizará el pedido:" << endl;
+		cout << endl;
+		
+		lista_Local.condition_print([](local l) {cout << l.toString() << endl; }, [=](local l) {if (l.getDireccion() == direccion) { return true; } else { return false; } });
 
+		cin >> opcion_local;
+    //lista_Repartidor.condition_print([](repartidor l) {cout << l.toString() << endl; }, [=](repartidor l) {if (l.getDireccion() == direccion) { return true; } else { return false; } });
+		//conseguimos el usuario y la direccion para realizar el pedido
+    function<bool(repartidor)> condicion=[=](repartidor l) {if (l.getDireccion() == direccion) { return true; } else { return false; } };
+    
+     
+		lista_Pedido.push_back(pedido(lista_Usuarios.buscar(lista_Usuarios.getCantidad()-1), lista_Local.buscar(opcion_local),tiempo,lista_Repartidor.condition_buscar(condicion)));
+		
+		//repetición
+		cout << "desea continuar ? ";
+		cin >> opcion;
+		opcion = toupper(opcion);
+	} while (opcion == 'S');
 
-};
+	cout << endl;
+	lista_Pedido.print([](pedido u) {cout << u.toString() << endl; });
+	opcion = ' ';
+	us ene=0;
+	arc->getPedidos(lista_Pedido);
+	arc->EscribirPedidos();
+
+	do
+	{
+		cout <<endl <<"Elija una opcion :" << endl;
+		cout << "(A) Estado de un pedido de acuerdo a orden." << endl;
+		//cout << "(B) Buscar a un usuario de acuerdo a su numero telefonico." << endl;
+		cout << "(B) Borrar un pedido de acuerdo a orden." << endl;
+		cout << "(C) Volver a imprimir todos los pedidos." << endl;
+		cout << "(D) Guardar los pedidos en un bloc de notas." << endl;
+    cout << "(R) Mostrar datos del repartidor de acuerdo al orden de pedido." << endl;  
+		cout << "(E) Salir." << endl;
+		cin >> opcion;
+		opcion = toupper(opcion);
+		switch (opcion)
+		{
+		case 'A':
+			cin >> ene;
+			cout << lista_Pedido.buscar(ene).toString() << endl;
+			break;
+		case 'B':
+			cin >> ene;
+			lista_Pedido.borrar(ene);
+			lista_Pedido.print([](pedido u) {cout << u.toString() << endl; });
+			break;
+		case 'C':
+			lista_Pedido.print([](pedido u) {cout << u.toString() << endl; });
+			break;
+		case 'D':
+			arc->getPedidos(lista_Pedido);
+			arc->EscribirPedidos();
+			cout << "El pedido se ha guardado";
+			break;
+    case 'R':
+      cin>>ene;
+      cout<<lista_Pedido.buscar(ene).DatosRepartidor()<<endl;
+      break;
+		default:
+			break;
+		}
+
+	} while (opcion != 'E');
+	
+
+	//_getch();
+	return 0;
+
+}
